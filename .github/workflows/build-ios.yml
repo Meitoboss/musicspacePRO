@@ -115,24 +115,31 @@ jobs:
             exit 1
           fi
           WORKSPACE_NAME=$(basename "$WORKSPACE_PATH")
-          echo "Found workspace: $WORKSPACE_NAME"
+          WORKSPACE_BASE="${WORKSPACE_NAME%.xcworkspace}"
+          echo "Found workspace: $WORKSPACE_NAME (Base: $WORKSPACE_BASE)"
           
           SCHEME_NAME=$(xcodebuild -list -workspace "$WORKSPACE_NAME" 2>/dev/null | python3 -c "
           import sys, re
           text = sys.stdin.read()
+          target_base = '$WORKSPACE_BASE'
           m = re.search(r'Schemes:\s*\n((?:\s+.*\n)+)', text)
           if m:
               schemes = [s.strip() for s in m.group(1).split('\n') if s.strip()]
-              app_schemes = [s for s in schemes if not s.startswith('Pods-') and 'Tests' not in s and 'React' not in s]
-              if app_schemes:
-                  print(app_schemes[0])
-              elif schemes:
-                  print(schemes[0])
+              exact = [s for s in schemes if s.lower() == target_base.lower()]
+              if exact:
+                  print(exact[0])
+              else:
+                  excluded = ('pods-', 'tests', 'react', 'boost', 'expo', 'fmt', 'glog', 'doubleconversion')
+                  app_schemes = [s for s in schemes if not any(x in s.lower() for x in excluded)]
+                  if app_schemes:
+                      print(app_schemes[0])
+                  elif schemes:
+                      print(schemes[0])
           ")
           if [ -z "$SCHEME_NAME" ]; then
-            SCHEME_NAME="${WORKSPACE_NAME%.xcworkspace}"
+            SCHEME_NAME="$WORKSPACE_BASE"
           fi
-          echo "Selected app scheme: $SCHEME_NAME"
+          echo "Selected main app scheme: $SCHEME_NAME"
           
           xcodebuild build \
             -workspace "$WORKSPACE_NAME" \
