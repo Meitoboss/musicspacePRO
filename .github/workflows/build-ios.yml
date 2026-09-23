@@ -146,21 +146,29 @@ jobs:
 
       - name: Verify bundle inside app
         run: |
-          APP_PATH=$(find ios/build/OpenSpot.xcarchive/Products/Applications -name "*.app" | head -1)
-          echo "App: $APP_PATH"
+          APP_PATH=$(find ios/build -name "*.app" | head -1)
+          echo "App path found: $APP_PATH"
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: .app bundle not found in ios/build"
+            ls -la ios/build || true
+            exit 1
+          fi
           if [ ! -f "$APP_PATH/main.jsbundle" ]; then
-            echo "Copiando bundle manualmente..."
+            echo "Copiando bundle..."
             cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
           fi
           ls -la "$APP_PATH"
 
       - name: Package IPA
         run: |
-          cd ios
-          APP_PATH=$(find build/OpenSpot.xcarchive/Products/Applications -name "*.app" | head -1)
-          mkdir -p build/Payload
-          cp -r "$APP_PATH" build/Payload/
-          cd build
+          APP_PATH=$(find ios/build -name "*.app" | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: .app bundle not found for packaging"
+            exit 1
+          fi
+          mkdir -p ios/build/Payload
+          cp -r "$APP_PATH" ios/build/Payload/
+          cd ios/build
           zip -r OpenSpot.ipa Payload
 
       - name: Upload IPA artifact
