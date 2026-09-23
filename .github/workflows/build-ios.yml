@@ -146,11 +146,11 @@ jobs:
 
       - name: Verify bundle inside app
         run: |
-          APP_PATH=$(find ios/build -name "*.app" | head -1)
+          APP_PATH=$(find ios/build/OpenSpot.xcarchive/Products/Applications -name "*.app" | head -1)
           echo "App path found: $APP_PATH"
           if [ -z "$APP_PATH" ]; then
-            echo "Error: .app bundle not found in ios/build"
-            ls -la ios/build || true
+            echo "Error: .app bundle not found in archive"
+            ls -la ios/build/OpenSpot.xcarchive/Products/Applications || true
             exit 1
           fi
           if [ ! -f "$APP_PATH/main.jsbundle" ]; then
@@ -161,7 +161,7 @@ jobs:
 
       - name: Package IPA
         run: |
-          APP_PATH=$(find ios/build -name "*.app" | head -1)
+          APP_PATH=$(find ios/build/OpenSpot.xcarchive/Products/Applications -name "*.app" | head -1)
           if [ -z "$APP_PATH" ]; then
             echo "Error: .app bundle not found for packaging"
             exit 1
