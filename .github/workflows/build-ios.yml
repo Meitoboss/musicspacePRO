@@ -13,8 +13,6 @@ jobs:
     env:
       CI: "1"
       NODE_ENV: "production"
-      APP_NAME: "MusicSpace"
-      SCHEME_NAME: "MusicSpace"
       EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
       EXPO_PUBLIC_YT_API_INSTANCES: ${{ secrets.EXPO_PUBLIC_YT_API_INSTANCES }}
 
@@ -110,9 +108,30 @@ jobs:
       - name: Build Archive (unsigned)
         run: |
           cd ios
+          WORKSPACE_PATH=$(find . -maxdepth 1 -name "*.xcworkspace" | head -1)
+          if [ -z "$WORKSPACE_PATH" ]; then
+            echo "Error: No .xcworkspace found"
+            ls -la
+            exit 1
+          fi
+          WORKSPACE_NAME=$(basename "$WORKSPACE_PATH")
+          echo "Found workspace: $WORKSPACE_NAME"
+          
+          SCHEME_NAME=$(xcodebuild -list -workspace "$WORKSPACE_NAME" 2>/dev/null | python3 -c "
+          import sys, re
+          text = sys.stdin.read()
+          m = re.search(r'Schemes:\s*\n\s*(\S+)', text)
+          if m:
+              print(m.group(1))
+          ")
+          if [ -z "$SCHEME_NAME" ]; then
+            SCHEME_NAME="${WORKSPACE_NAME%.xcworkspace}"
+          fi
+          echo "Found scheme: $SCHEME_NAME"
+          
           xcodebuild archive \
-            -workspace $APP_NAME.xcworkspace \
-            -scheme $SCHEME_NAME \
+            -workspace "$WORKSPACE_NAME" \
+            -scheme "$SCHEME_NAME" \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
