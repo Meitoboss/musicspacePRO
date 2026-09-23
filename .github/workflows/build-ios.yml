@@ -105,7 +105,7 @@ jobs:
         run: |
           sed -i '' 's/--dev true/--dev false/g' ios/*/project.pbxproj || true
 
-      - name: Build Archive (unsigned)
+      - name: Build iOS App (unsigned)
         run: |
           cd ios
           WORKSPACE_PATH=$(find . -maxdepth 1 -name "*.xcworkspace" | head -1)
@@ -134,31 +134,31 @@ jobs:
           fi
           echo "Selected app scheme: $SCHEME_NAME"
           
-          xcodebuild archive \
+          xcodebuild build \
             -workspace "$WORKSPACE_NAME" \
             -scheme "$SCHEME_NAME" \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
-            -archivePath build/OpenSpot.xcarchive \
+            -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE_SPECIFIER="" \
-            ONLY_ACTIVE_ARCH=NO \
-            SKIP_INSTALL=NO
+            ONLY_ACTIVE_ARCH=NO
 
       - name: Verify bundle inside app
         run: |
-          APP_PATH=$(find ios/build -name "*.app" -type d 2>/dev/null | head -1)
+          APP_PATH=$(find ios/build/Build/Products/Release-iphoneos -name "*.app" -type d 2>/dev/null | head -1)
           if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "*.app" -type d 2>/dev/null | head -1)
+            APP_PATH=$(find ios/build -name "*.app" -type d 2>/dev/null | head -1)
           fi
           echo "App path found: $APP_PATH"
           if [ -z "$APP_PATH" ]; then
-            echo "Error: .app bundle not found anywhere"
+            echo "Error: .app bundle not found in build directory"
+            find ios/build || true
             exit 1
           fi
           if [ ! -f "$APP_PATH/main.jsbundle" ]; then
@@ -169,9 +169,9 @@ jobs:
 
       - name: Package IPA
         run: |
-          APP_PATH=$(find ios/build -name "*.app" -type d 2>/dev/null | head -1)
+          APP_PATH=$(find ios/build/Build/Products/Release-iphoneos -name "*.app" -type d 2>/dev/null | head -1)
           if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "*.app" -type d 2>/dev/null | head -1)
+            APP_PATH=$(find ios/build -name "*.app" -type d 2>/dev/null | head -1)
           fi
           if [ -z "$APP_PATH" ]; then
             echo "Error: .app bundle not found for packaging"
