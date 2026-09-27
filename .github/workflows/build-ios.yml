@@ -1,0 +1,206 @@
+name: Build iOS Production IPA (unsigned)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: openspot-mobile
+
+    env:
+      CI: "1"
+      NODE_ENV: "production"
+      EXPO_PUBLIC_API_BASE_URL: "https://jiosaavn-api2.nano-nano-nanofn.workers.dev"
+      EXPO_PUBLIC_YT_API_INSTANCES: "https://pipedapi.palvelu.org"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Remove Expo Dev Tools & add missing deps
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            delete pkg.dependencies['expo-dev-client'];
+            delete pkg.dependencies['expo-dev-menu'];
+            delete pkg.dependencies['expo-dev-launcher'];
+            pkg.dependencies['expo-asset'] = '~11.1.6';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+            
+            const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+            app.expo.plugins = app.expo.plugins.filter(p => {
+              const name = typeof p === 'string' ? p : p[0];
+              return !['expo-dev-client', 'expo-dev-menu', 'expo-dev-launcher'].includes(name);
+            });
+            fs.writeFileSync('app.json', JSON.stringify(app, null, 2));
+          "
+          rm -rf node_modules
+
+      - name: Reinstall dependencies
+        run: npm install
+
+      - name: Create eas.json
+        run: |
+          if [ -n "${{ secrets.EAS_JSON_CONTENT }}" ]; then
+            printf '%s' '${{ secrets.EAS_JSON_CONTENT }}' > eas.json
+          else
+            echo '{"cli":{"version":">= 7.0.0"},"build":{"production":{}}}' > eas.json
+          fi
+
+      - name: Create .env
+        run: |
+          cat << 'EOF' > .env
+          EXPO_PUBLIC_API_BASE_URL=https://saavn.dev
+          EXPO_PUBLIC_YT_API_INSTANCES=https://pipedapi.kavin.rocks
+          EOF
+
+      - name: Prebuild iOS
+        run: npx expo prebuild --platform ios --clean
+
+      - name: Install Pods
+        run: |
+          cd ios
+          export RCT_NEW_ARCH_ENABLED=1
+          pod install --repo-update
+
+      - name: Patch fmt library for Xcode consteval issue
+        run: |
+          chmod -R +w ios/Pods/fmt || true
+          python3 -c "
+          import os, re, stat
+          fmt_dir = 'ios/Pods/fmt'
+          if os.path.exists(fmt_dir):
+              for root, _, files in os.walk(fmt_dir):
+                  for file in files:
+                      if file.endswith('.h'):
+                          path = os.path.join(root, file)
+                          try:
+                              os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
+                              with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                                  content = f.read()
+                              patched = re.sub(r'FMT_USE_CONSTEVAL\s+1', 'FMT_USE_CONSTEVAL 0', content)
+                              if patched != content:
+                                  with open(path, 'w', encoding='utf-8') as f:
+                                      f.write(patched)
+                                  print(f'Patched: {path}')
+                          except Exception as e:
+                              print(f'Failed {path}: {e}')
+          "
+
+      - name: Bundle JS (Hermes production)
+        run: |
+          npx expo export:embed \
+            --platform ios \
+            --entry-file index.js \
+            --bundle-output ios/main.jsbundle \
+            --assets-dest ios \
+            --dev false \
+            --reset-cache \
+            --bytecode
+
+      - name: Fix Xcode Build Phase
+        run: |
+          sed -i '' 's/--dev true/--dev false/g' ios/*/project.pbxproj || true
+
+      - name: Build iOS App (unsigned)
+        run: |
+          cd ios
+          WORKSPACE_PATH=$(find . -maxdepth 1 -name "*.xcworkspace" | head -1)
+          if [ -z "$WORKSPACE_PATH" ]; then
+            echo "Error: No .xcworkspace found"
+            ls -la
+            exit 1
+          fi
+          WORKSPACE_NAME=$(basename "$WORKSPACE_PATH")
+          WORKSPACE_BASE="${WORKSPACE_NAME%.xcworkspace}"
+          echo "Found workspace: $WORKSPACE_NAME (Base: $WORKSPACE_BASE)"
+          
+          SCHEME_NAME=$(xcodebuild -list -workspace "$WORKSPACE_NAME" 2>/dev/null | python3 -c "
+          import sys, re
+          text = sys.stdin.read()
+          target_base = '$WORKSPACE_BASE'
+          m = re.search(r'Schemes:\s*\n((?:\s+.*\n)+)', text)
+          if m:
+              schemes = [s.strip() for s in m.group(1).split('\n') if s.strip()]
+              exact = [s for s in schemes if s.lower() == target_base.lower()]
+              if exact:
+                  print(exact[0])
+              else:
+                  excluded = ('pods-', 'tests', 'react', 'boost', 'expo', 'fmt', 'glog', 'doubleconversion')
+                  app_schemes = [s for s in schemes if not any(x in s.lower() for x in excluded)]
+                  if app_schemes:
+                      print(app_schemes[0])
+                  elif schemes:
+                      print(schemes[0])
+          ")
+          if [ -z "$SCHEME_NAME" ]; then
+            SCHEME_NAME="$WORKSPACE_BASE"
+          fi
+          echo "Selected main app scheme: $SCHEME_NAME"
+          
+          xcodebuild build \
+            -workspace "$WORKSPACE_NAME" \
+            -scheme "$SCHEME_NAME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            ONLY_ACTIVE_ARCH=NO
+
+      - name: Verify bundle inside app
+        run: |
+          APP_PATH=$(find ios/build/Build/Products/Release-iphoneos -name "*.app" -type d 2>/dev/null | head -1)
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find ios/build -name "*.app" -type d 2>/dev/null | head -1)
+          fi
+          echo "App path found: $APP_PATH"
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: .app bundle not found in build directory"
+            find ios/build || true
+            exit 1
+          fi
+          if [ ! -f "$APP_PATH/main.jsbundle" ]; then
+            echo "Copiando bundle..."
+            cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
+          fi
+          ls -la "$APP_PATH"
+
+      - name: Package IPA
+        run: |
+          APP_PATH=$(find ios/build/Build/Products/Release-iphoneos -name "*.app" -type d 2>/dev/null | head -1)
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find ios/build -name "*.app" -type d 2>/dev/null | head -1)
+          fi
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: .app bundle not found for packaging"
+            exit 1
+          fi
+          echo "Packaging app from: $APP_PATH"
+          mkdir -p ios/build/Payload
+          cp -r "$APP_PATH" ios/build/Payload/
+          cd ios/build
+          zip -r OpenSpot.ipa Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenSpot-IPA
+          path: openspot-mobile/ios/build/OpenSpot.ipa
