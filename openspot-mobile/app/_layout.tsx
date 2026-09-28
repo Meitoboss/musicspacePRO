@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { useThemeMode, ThemeModeProvider } from '@/hooks/theme-mode';
+import { ThemeModeProvider } from '@/hooks/theme-mode';
 import { LikedSongsProvider } from '@/hooks/useLikedSongs';
 import { useApiStatus } from '@/hooks/useApiStatus';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -15,7 +15,6 @@ import '@/lib/i18n';
 SplashScreen.preventAutoHideAsync();
 
 function AppNavigation() {
-  const { resolvedScheme } = useThemeMode();
   const { apiStatus, loading } = useApiStatus();
   const PROVIDER_KEY = 'openspot_provider_v1';
 
@@ -44,11 +43,17 @@ function AppNavigation() {
 
   return (
     <LikedSongsProvider>
-      <Stack>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#000000' }, // ダークモード背景色（黒）固定
+        }}
+      >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
-      <StatusBar style={resolvedScheme === 'dark' ? 'light' : 'dark'} />
+      {/* ステータスバーを非表示＆ダーク固定 */}
+      <StatusBar style="light" hidden={true} />
     </LikedSongsProvider>
   );
 }
