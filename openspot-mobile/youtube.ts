@@ -1,32 +1,25 @@
-import { Innertube } from 'youtubei.js/web';
+import { Innertube, UniversalCache } from 'youtubei.js/web';
 
 let ytClient: Innertube | null = null;
 
-/**
- * YouTube (Innertube) クライアントの初期化
- * 日本 (JP) コンテキストを指定して、邦楽の公式音源を取得できるようにします
- */
 export const getYouTubeClient = async (): Promise<Innertube> => {
   if (!ytClient) {
     ytClient = await Innertube.create({
       location: 'JP',
       gl: 'JP',
       hl: 'ja',
-      retrieve_player: true,
+      cache: new UniversalCache(false),
+      retrieve_player: false, // Hermesでの eval クラッシュを防ぐためプレイヤー取得を無効化
     });
   }
   return ytClient;
 };
 
-/**
- * 1. 楽曲検索 (YouTube Music の 'song' 指定でカバー曲・ピアノ版を除外)
- * @param query 検索ワード (例: "YOASOBI アイドル")
- */
 export const searchSongs = async (query: string) => {
   try {
     const yt = await getYouTubeClient();
     const results = await yt.music.search(query, { type: 'song' });
-    
+
     return results.songs?.contents.map((song: any) => ({
       id: song.id,
       title: song.title,
@@ -41,39 +34,34 @@ export const searchSongs = async (query: string) => {
   }
 };
 
-/**
- * 2. 音声ストリーム再生用URLの取得
- * @param videoId 曲の ID (例: "m7L3B52TfG0")
- */
 export const getAudioStreamUrl = async (videoId: string): Promise<string | null> => {
   try {
     const yt = await getYouTubeClient();
-    const info = await yt.getBasicInfo(videoId);
-    
-    // 音声のみ・最高音質のフォーマットを自動選択
-    const format = info.chooseFormat({ type: 'audio', quality: 'best' });
-    if (!format) return null;
 
-    // 再生可能なURLにデコードして返却
-    const streamUrl = format.decipher(yt.session.player);
-    return streamUrl;
+    // 1. ANDROID クライアントで直接 URL を取得（eval 不要）
+    try {
+      const androidInfo = await yt.getBasicInfo(videoId, 'ANDROID');
+      const format = androidInfo.chooseFormat({ type: 'audio', quality: 'best' });
+      if (format && format.url) {
+        console.log('[youtubei.js] Android client format URL retrieved');
+        return format.url;
+      }
+    } catch (e) {
+      console.warn('[youtubei.js] Android client fetch failed, trying TV_EMBEDDED...', e);
+    }
+
+    // 2. 失敗時は TV_EMBEDDED クライアントで再試行
+    const tvInfo = await yt.getBasicInfo(videoId, 'TV_EMBEDDED');
+    const tvFormat = tvInfo.chooseFormat({ type: 'audio', quality: 'best' });
+    if (tvFormat && tvFormat.url) {
+      console.log('[youtubei.js] TV client format URL retrieved');
+      return tvFormat.url;
+    }
+
+    console.error('[youtubei.js] No direct stream URL found for videoId:', videoId);
+    return null;
   } catch (error) {
     console.error('ストリームURL取得エラー:', error);
-    return null;
-  }
-};
-
-/**
- * 3. 歌詞データの取得
- * @param videoId 曲の ID
- */
-export const getLyrics = async (videoId: string): Promise<string | null> => {
-  try {
-    const yt = await getYouTubeClient();
-    const lyricsData = await yt.music.getLyrics(videoId);
-    return lyricsData?.description?.text || null;
-  } catch (error) {
-    console.error('歌詞取得エラー:', error);
     return null;
   }
 };
