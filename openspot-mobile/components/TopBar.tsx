@@ -68,6 +68,10 @@ export function TopBar({
   const { query, setQuery, searchTracks, clearResults, searchType, setSearchType } = searchState;
   const router = useRouter();
 
+  const handleTitlePress = () => {
+    // ロゴタップ時の処理（必要に応じて記述。例: router.push('/settings')）
+  };
+
   const handleSearchSubmit = () => {
     if (query.trim()) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
