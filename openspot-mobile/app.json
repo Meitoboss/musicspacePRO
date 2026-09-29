@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "OpenSpot",
-    "slug": "OpenSpot",
+    "name": "MusicSpace",
+    "slug": "MusicSpace",
     "version": "3.1.5",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
@@ -28,12 +28,12 @@
         "backgroundColor": "#667eea"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.devx.openspot",
+      "package": "com.devx.MusicSpace",
       "versionCode": 43,
       "foregroundService": {
         "type": "mediaPlayback",
         "notification": {
-          "title": "OpenSpot",
+          "title": "MusicSpace",
           "body": "Playing music in background",
           "icon": "./assets/images/icon.png",
           "color": "#1DB954"
