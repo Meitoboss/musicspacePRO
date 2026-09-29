@@ -10,7 +10,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useLikedSongs } from '@/hooks/useLikedSongs';
 import { HorizontalTrackList } from '@/components/HorizontalTrackList';
-import { useRouter , useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { COUNTRY_NAMES } from '@/constants/countryNames';
@@ -64,7 +64,10 @@ export default function HomeScreen() {
   const [recentlyPlayedTracks, setRecentlyPlayedTracks] = useState<Track[]>([]);
   const [showFirstRunSetup, setShowFirstRunSetup] = useState(false);
   const [setupRegion, setSetupRegion] = useState<string>('auto');
-  const [setupLanguage, setSetupLanguage] = useState<string>('en');
+  
+  // デフォルト言語を日本語 ('ja') に設定
+  const [setupLanguage, setSetupLanguage] = useState<string>('ja');
+  
   const [setupTheme, setSetupTheme] = useState<ThemeMode>(mode);
   const [isSavingSetup, setIsSavingSetup] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
@@ -74,27 +77,22 @@ export default function HomeScreen() {
   const [trendingEnabled, setTrendingEnabled] = useState<boolean>(true);
   const scrollRef = useRef<ScrollView>(null);
 
+  // 言語選択肢（日本語と英語）
   const languageOptions: { label: string; value: string; nativeLabel: string }[] = [
+    { label: '日本語', value: 'ja', nativeLabel: '日本語' },
     { label: 'English', value: 'en', nativeLabel: 'English' },
-    { label: 'Hindi', value: 'hi', nativeLabel: 'Hindi' },
-    { label: 'Spanish', value: 'es', nativeLabel: 'Espanol' },
-    { label: 'Chinese', value: 'zh', nativeLabel: 'Zhongwen' },
-    { label: 'German', value: 'de', nativeLabel: 'Deutsch' },
-    { label: 'French', value: 'fr', nativeLabel: 'Francais' },
-    { label: 'Russian', value: 'ru', nativeLabel: 'Russkiy' },
-    { label: 'Hebrew', value: 'he', nativeLabel: 'Ivrit' },
-    { label: 'Turkish', value: 'tr', nativeLabel: 'Türkçe' },
   ];
 
   useEffect(() => {
     (async () => {
       try {
-        const [cacheStr, mapStr, done, stored, storedRegion, timestamp] = await Promise.all([
+        const [cacheStr, mapStr, done, stored, storedRegion, storedLang, timestamp] = await Promise.all([
           AsyncStorage.getItem(TRENDING_TRACKS_CACHE_KEY),
           AsyncStorage.getItem(REGION_URL_MAP_KEY),
           AsyncStorage.getItem(FIRST_RUN_SETUP_KEY),
           AsyncStorage.getItem(TRENDING_ENABLED_KEY),
           AsyncStorage.getItem(REGION_OVERRIDE_KEY),
+          AsyncStorage.getItem(LANGUAGE_KEY),
           AsyncStorage.getItem(REGION_URL_MAP_TIMESTAMP_KEY),
         ]);
         if (cacheStr) setTrendingCache(JSON.parse(cacheStr));
@@ -102,6 +100,13 @@ export default function HomeScreen() {
         if (!done) setShowFirstRunSetup(true);
         if (stored !== null) setTrendingEnabled(stored === 'true');
         if (storedRegion && storedRegion.trim()) setRegionOverride(storedRegion);
+
+        // 保存された言語があれば適用、なければデフォルト 'ja' を適用
+        const initialLang = storedLang || 'ja';
+        setSetupLanguage(initialLang);
+        if (i18n.language !== initialLang) {
+          await i18n.changeLanguage(initialLang);
+        }
 
         const isStale = !timestamp || Date.now() - parseInt(timestamp, 10) > REGION_CACHE_TTL_MS;
         if (isStale) {
@@ -373,7 +378,6 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            
             {trendingEnabled && (
               <View>
                 <SectionHeader
@@ -468,7 +472,7 @@ export default function HomeScreen() {
               onPress={() => setIsLanguageModalOpen(true)}
             >
               <Text style={[styles.setupDropdownButtonText, { color: theme.textPrimary }]}>
-                {languageOptions.find((option) => option.value === setupLanguage)?.label || 'English'}
+                {languageOptions.find((option) => option.value === setupLanguage)?.label || '日本語'}
               </Text>
               <Ionicons name="chevron-down" size={16} color={theme.textSecondary} />
             </TouchableOpacity>
