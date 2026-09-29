@@ -105,10 +105,6 @@ export function TopBar({
   const handleSearchBlur = () => {
   };
 
-  const handleTitlePress = () => {
-    Linking.openURL('https://github.com/BlackHatDevX/openspot-music-app');
-  };
-
   return (
     <View
       style={[
