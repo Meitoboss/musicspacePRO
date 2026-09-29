@@ -17,7 +17,6 @@ import { COUNTRY_NAMES } from '@/constants/countryNames';
 import { useTranslation } from 'react-i18next';
 import { useThemeMode, ThemeMode } from '@/hooks/theme-mode';
 import { useConnectivity } from '@/hooks/useConnectivity';
-import { GreetingHeader } from '@/components/GreetingHeader';
 import { QuickActions } from '@/components/QuickActions';
 import { SectionHeader } from '@/components/SectionHeader';
 
@@ -87,7 +86,6 @@ export default function HomeScreen() {
     { label: 'Turkish', value: 'tr', nativeLabel: 'Türkçe' },
   ];
 
-  
   useEffect(() => {
     (async () => {
       try {
@@ -219,11 +217,9 @@ export default function HomeScreen() {
     let isMounted = true;
 
     const fetchTrendingTracks = async (list: string[]) => {
-
       let cache = { ...trendingCache };
       const tracks: Track[] = [];
       let cacheChanged = false;
-
 
       for (const entry of list) {
         if (cache[entry]) {
@@ -231,11 +227,9 @@ export default function HomeScreen() {
         }
       }
 
-
       if (isMounted) {
         setTrendingTracks([...tracks]);
       }
-
 
       for (const entry of list) {
         if (!cache[entry]) {
@@ -245,7 +239,6 @@ export default function HomeScreen() {
               cache[entry] = res.tracks[0];
               tracks.push(res.tracks[0]);
               cacheChanged = true;
-
 
               if (isMounted) {
                 setTrendingTracks([...tracks]);
@@ -380,7 +373,6 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            <GreetingHeader />
             <QuickActions
               onShuffleLiked={handleShuffleLiked}
               onDownloads={handleDownloadsNav}
