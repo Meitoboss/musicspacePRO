@@ -23,8 +23,6 @@ import { useApiStatus } from '@/hooks/useApiStatus';
 import { useToast } from '@/hooks/useToast';
 
 const CURRENT_VERSION = '3.1.5';
-const TELEGRAM_URL = 'https://telegram.dog/deveIoper_x';
-const YOUTUBE_URL = 'https://www.youtube.com/@nerdsClub';
 const UPDATE_CONFIG_URL = 'https://raw.githubusercontent.com/BlackHatDevX/openspot-config/refs/heads/main/update-mobile.json';
 const KWORD_URL = 'https://kworb.net/spotify/';
 const REGION_OVERRIDE_KEY = 'openspot_region_override_v1';
@@ -466,35 +464,6 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           )}
         </View>
-
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>{t('settings.stay_updated')}</Text>
-          <Text style={[styles.cardText, { color: theme.textSecondary, marginBottom: 12 }]}>
-            {t('settings.stay_updated_description')}
-          </Text>
-          <View style={styles.updateButtonsRow}>
-            <TouchableOpacity
-              style={[styles.updateButton, { backgroundColor: theme.accent, flex: 1, marginRight: 8 }]}
-              onPress={() => Linking.openURL(TELEGRAM_URL)}
-            >
-              <Ionicons name="send" size={18} color="#fff" style={styles.updateButtonIcon} />
-              <Text style={styles.updateButtonText}>{t('settings.telegram')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.updateButton, { backgroundColor: '#ff0000', flex: 1 }]}
-              onPress={() => Linking.openURL(YOUTUBE_URL)}
-            >
-              <Ionicons name="logo-youtube" size={18} color="#fff" style={styles.updateButtonIcon} />
-              <Text style={styles.updateButtonText}>{t('settings.youtube')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-            Made with <Text style={{ color: '#ff4444' }}>❤</Text> by @jashgro
-          </Text>
-        </View>
       </ScrollView>
 
       <Modal
@@ -825,15 +794,6 @@ const styles = StyleSheet.create({
   toggleThumbOn: {
     alignSelf: 'flex-end',
   },
-  footer: {
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  footerText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
   versionButtonsRow: {
     flexDirection: 'row',
     marginTop: 10,
@@ -921,25 +881,5 @@ const styles = StyleSheet.create({
   betaButtonRow: {
     flexDirection: 'row',
     width: '100%',
-  },
-  updateButtonsRow: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-  updateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  updateButtonIcon: {
-    marginRight: 8,
-  },
-  updateButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });
