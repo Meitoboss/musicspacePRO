@@ -197,10 +197,10 @@ jobs:
           mkdir -p ios/build/Payload
           cp -r "$APP_PATH" ios/build/Payload/
           cd ios/build
-          zip -r OpenSpot.ipa Payload
+          zip -r MusicSpace.ipa Payload
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OpenSpot-IPA
-          path: openspot-mobile/ios/build/OpenSpot.ipa
+          name: MusicSpace-IPA
+          path: openspot-mobile/ios/build/MusicSpace.ipa
