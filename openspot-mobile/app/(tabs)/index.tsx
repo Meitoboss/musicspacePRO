@@ -373,12 +373,7 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            <QuickActions
-              onShuffleLiked={handleShuffleLiked}
-              onDownloads={handleDownloadsNav}
-              onLibrary={handleLibraryNav}
-            />
-
+            
             {trendingEnabled && (
               <View>
                 <SectionHeader
