@@ -35,9 +35,6 @@
     "welcome_title": "Welcome to OpenSpot",
     "welcome_subtitle": "Set your preferences once. Trending loads in the background.",
     "continue": "Continue",
-    "good_morning": "Good Morning",
-    "good_afternoon": "Good Afternoon",
-    "good_evening": "Good Evening",
     "ready_to_explore": "Ready to explore?",
     "shuffle_liked": "Shuffle Liked",
     "continue_listening": "Continue Listening",
@@ -84,7 +81,7 @@
     "liked_songs_hint": "Songs you like will appear here",
     "liked_songs_hint_2": "Tap the heart icon on any song to add it to your liked songs",
     "baking_favorites": "Baking your favorite songs...",
-    "openspot": "OpenSpot",
+    "openspot": "MusicSpace",
     "songs_tab": "Songs",
     "albums_tab": "Albums",
     "artists_tab": "Artists",
@@ -189,9 +186,5 @@
     "beta_warning_link": "Check why - click here",
     "back": "Back",
     "proceed": "Proceed",
-    "share_with_friends": "Share with Friends",
-    "share_description": "Want your friends to enjoy ad-free music with unlimited streaming and offline downloads? Share OpenSpot and spread the vibe!",
-    "share_app": "Share App",
-    "share_message": "Hey! Check out OpenSpot — ad-free music streaming with unlimited skips and offline downloads. Your personal music companion! 🎵"
   }
 }
