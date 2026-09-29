@@ -1,5 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 
 type ResolvedScheme = 'light' | 'dark';
 export type ThemeMode = 'light' | 'dark' | 'auto';
@@ -10,56 +9,15 @@ interface ThemeModeContextValue {
   resolvedScheme: ResolvedScheme;
 }
 
-const STORAGE_KEY = 'openspot_theme_mode_v1';
 const ThemeModeContext = createContext<ThemeModeContextValue | undefined>(undefined);
 
-function getAutoSchemeByTime(date: Date = new Date()): ResolvedScheme {
-  const hour = date.getHours();
-  return hour >= 7 && hour < 19 ? 'light' : 'dark';
-}
-
 export function ThemeModeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>('auto');
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    let mounted = true;
-    const loadMode = async () => {
-      try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (!mounted || !stored) return;
-        if (stored === 'light' || stored === 'dark' || stored === 'auto') {
-          setModeState(stored);
-        }
-      } catch (error) {
-        console.error('Failed to load theme mode:', error);
-      }
-    };
-    void loadMode();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (mode !== 'auto') return;
-    const timer = setInterval(() => setTick((prev) => prev + 1), 60000);
-    return () => clearInterval(timer);
-  }, [mode]);
-
-  const setMode = (nextMode: ThemeMode) => {
-    setModeState(nextMode);
-    AsyncStorage.setItem(STORAGE_KEY, nextMode).catch((error) => {
-      console.error('Failed to save theme mode:', error);
-    });
-  };
-
-  const resolvedScheme: ResolvedScheme = useMemo(() => {
-    void tick;
-    if (mode === 'light') return 'light';
-    if (mode === 'dark') return 'dark';
-    return getAutoSchemeByTime();
-  }, [mode, tick]);
+  // 常に 'dark' に固定
+  const mode: ThemeMode = 'dark';
+  const resolvedScheme: ResolvedScheme = 'dark';
+  
+  // 他のコンポーネントから setMode が呼ばれても何も変更しないダミー関数
+  const setMode = (_nextMode: ThemeMode) => {};
 
   return (
     <ThemeModeContext.Provider value={{ mode, setMode, resolvedScheme }}>
@@ -75,4 +33,3 @@ export function useThemeMode() {
   }
   return context;
 }
-
