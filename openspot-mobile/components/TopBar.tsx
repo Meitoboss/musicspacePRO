@@ -11,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { ThemeMode, useThemeMode } from '@/hooks/theme-mode';
 import { useTranslation } from 'react-i18next';
 
 interface UseSearchReturn {
@@ -41,6 +40,18 @@ interface TopBarProps {
   autoFocus?: boolean;
 }
 
+// HTML/CSSのロゴ (.brand-icon) をReact Nativeで再現したコンポーネント
+function BrandLogoIcon({ isDark, accent }: { isDark: boolean; accent: string }) {
+  const textColor = isDark ? '#ffffff' : '#1f232b';
+  return (
+    <View style={styles.brandIcon}>
+      <View style={[styles.brandIconOuter, { borderColor: textColor }]} />
+      <View style={[styles.brandIconInner, { borderColor: accent }]} />
+      <View style={[styles.brandIconCenter, { borderColor: textColor }]} />
+    </View>
+  );
+}
+
 export function TopBar({
   currentView,
   onViewChange,
@@ -53,7 +64,6 @@ export function TopBar({
   const colorScheme = useColorScheme();
   const isDark = colorScheme !== 'light';
   const accent = isDark ? '#1DB954' : '#167c3a';
-  const { mode, setMode } = useThemeMode();
   const { t } = useTranslation();
   const { query, setQuery, searchTracks, clearResults, searchType, setSearchType } = searchState;
   const router = useRouter();
@@ -99,8 +109,6 @@ export function TopBar({
     Linking.openURL('https://github.com/BlackHatDevX/openspot-music-app');
   };
 
-  const modeOptions: ThemeMode[] = ['light', 'dark', 'auto'];
-
   return (
     <View
       style={[
@@ -123,8 +131,15 @@ export function TopBar({
 
         <View style={styles.centerContent}>
           {currentView === 'home' ? (
-            <TouchableOpacity onPress={handleTitlePress} activeOpacity={0.8}>
-              <Text style={[styles.title, styles.homeTitle, { color: accent }]}>{t('components.openspot')}</Text>
+            <TouchableOpacity 
+              style={styles.brandTitleContainer} 
+              onPress={handleTitlePress} 
+              activeOpacity={0.8}
+            >
+              <BrandLogoIcon isDark={isDark} accent={accent} />
+              <Text style={[styles.title, styles.homeTitle, { color: isDark ? '#ffffff' : '#1f232b' }]}>
+                MusicSpace
+              </Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.searchViewContainer}>
@@ -224,29 +239,6 @@ export function TopBar({
             >
               <Ionicons name="search" size={18} color={accent} />
             </TouchableOpacity>
-            <View style={[styles.modeSwitcher, { backgroundColor: isDark ? '#1a1a1a' : '#fffaf2' }]}>
-              {modeOptions.map((option) => {
-                const isActive = mode === option;
-                return (
-                  <TouchableOpacity
-                    key={option}
-                    style={[styles.modeButton, isActive && [styles.modeButtonActive, { backgroundColor: accent }]]}
-                    onPress={() => setMode(option)}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.modeButtonText,
-                        { color: isDark ? '#888' : '#8a6e5a' },
-                        isActive && styles.modeButtonTextActive,
-                      ]}
-                    >
-                      {option === 'auto' ? t('components.theme_auto') : option === 'light' ? t('components.theme_light') : t('components.theme_dark')}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
           </View>
         )}
       </View>
@@ -275,15 +267,55 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  brandTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  brandIcon: {
+    width: 34,
+    height: 34,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandIconOuter: {
+    position: 'absolute',
+    width: 32,
+    height: 20,
+    bottom: 2,
+    borderWidth: 2,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  brandIconInner: {
+    position: 'absolute',
+    width: 22,
+    height: 14,
+    bottom: 7,
+    borderWidth: 2,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 11,
+    borderBottomRightRadius: 11,
+  },
+  brandIconCenter: {
+    position: 'absolute',
+    width: 12,
+    height: 9,
+    bottom: 12,
+    borderWidth: 2,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+  },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1DB954',
     textAlign: 'center',
   },
   homeTitle: {
     textAlign: 'left',
-    marginLeft: 8,
   },
   searchViewContainer: {
     gap: 8,
@@ -310,11 +342,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     padding: 4,
   },
-  modeSwitcher: {
-    borderRadius: 16,
-    flexDirection: 'row',
-    padding: 3,
-  },
   homeActions: {
     marginLeft: 10,
     flexDirection: 'row',
@@ -327,19 +354,6 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  modeButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  modeButtonActive: {},
-  modeButtonText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  modeButtonTextActive: {
-    color: '#fff',
   },
   searchTypeToggle: {
     flexDirection: 'row',
