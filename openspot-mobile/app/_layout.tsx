@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 import { ThemeModeProvider } from '@/hooks/theme-mode';
 import { LikedSongsProvider } from '@/hooks/useLikedSongs';
@@ -14,9 +15,11 @@ import '@/lib/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
+const LANGUAGE_KEY = 'openspot_language_v1';
+const PROVIDER_KEY = 'openspot_provider_v1';
+
 function AppNavigation() {
   const { apiStatus, loading } = useApiStatus();
-  const PROVIDER_KEY = 'openspot_provider_v1';
 
   useEffect(() => {
     const checkAndSwitchProvider = async () => {
@@ -59,9 +62,27 @@ function AppNavigation() {
 }
 
 export default function RootLayout() {
+  const { i18n } = useTranslation();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
+  // アプリ起動時に保存された言語設定を読み込み（デフォルトは 'ja'）
+  useEffect(() => {
+    const loadSavedLanguage = async () => {
+      try {
+        const savedLang = await AsyncStorage.getItem(LANGUAGE_KEY);
+        const targetLang = savedLang || 'ja';
+        if (i18n.language !== targetLang) {
+          await i18n.changeLanguage(targetLang);
+        }
+      } catch (error) {
+        console.error('Failed to load saved language:', error);
+      }
+    };
+
+    loadSavedLanguage();
+  }, [i18n]);
 
   useEffect(() => {
     if (loaded) {
