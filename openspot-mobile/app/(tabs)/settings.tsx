@@ -110,10 +110,10 @@ export default function SettingsScreen() {
     [isDark]
   );
 
+  // Autoを削除し、LightとDarkのみに修正
   const modeOptions: { label: string; value: ThemeMode }[] = [
     { label: 'Light', value: 'light' },
     { label: 'Dark', value: 'dark' },
-    { label: 'Auto', value: 'auto' },
   ];
 
   const languageOptions: { label: string; value: string; nativeLabel: string }[] = [
