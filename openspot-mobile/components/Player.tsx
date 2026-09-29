@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Modal,
   Alert,
-  Animated,
   ActivityIndicator,
   useWindowDimensions,
 } from 'react-native';
@@ -82,8 +81,6 @@ export function Player({
 
   const { isLiked, toggleLike } = useLikedSongs();
   const { t } = useTranslation();
-  const rotationValue = useRef(new Animated.Value(0)).current;
-  const rotationAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
   const isMountedRef = useRef(true);
   const downloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentTrackIdRef = useRef<string | number | null>(null);
@@ -108,7 +105,6 @@ export function Player({
 
   const { position: tpPosition, duration: tpDuration } = useProgress(250);
 
-  
   useEffect(() => {
     const setupPlayer = async () => {
       try {
@@ -161,18 +157,15 @@ export function Player({
       if (queueBuildDebounceRef.current) {
         clearTimeout(queueBuildDebounceRef.current);
       }
-      stopRotation();
       TrackPlayer.stop().catch(() => {});
       TrackPlayer.reset().catch(() => {});
     };
   }, []);
 
-  
   useEffect(() => {
     TrackPlayer.setVolume(volume).catch(() => {});
   }, [volume]);
 
-  
   useEffect(() => {
     if (!isSeeking) {
       setPosition(tpPosition * 1000);
@@ -183,7 +176,6 @@ export function Player({
     });
   }, [tpPosition, tpDuration, isSeeking]);
 
-  
   useEffect(() => {
     if (!playerReady) return;
     suppressInternalChanges(800);
@@ -201,39 +193,6 @@ export function Player({
     };
   }, [isPlaying, playerReady, pendingAutoPlayRef, suppressInternalChanges]);
 
-  
-  const startRotation = useCallback(() => {
-    if (rotationAnimationRef.current) {
-      rotationAnimationRef.current.stop();
-    }
-    rotationAnimationRef.current = Animated.loop(
-      Animated.timing(rotationValue, {
-        toValue: 1,
-        duration: 10000,
-        useNativeDriver: true,
-      }),
-      { iterations: -1 }
-    );
-    rotationAnimationRef.current.start();
-  }, [rotationValue]);
-
-  const stopRotation = useCallback(() => {
-    if (rotationAnimationRef.current) {
-      rotationAnimationRef.current.stop();
-      rotationAnimationRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isPlaying) {
-      startRotation();
-    } else {
-      stopRotation();
-    }
-    return () => stopRotation();
-  }, [isPlaying, startRotation]);
-
-  
   const resolveTrackUrl = async (t: Track): Promise<string> => {
     try {
       const offlineData = await AsyncStorage.getItem(`offline_${t.id}`);
@@ -248,7 +207,6 @@ export function Player({
     return MusicAPI.getStreamUrl(t.id.toString(), t);
   };
 
-  
   const musicQueueRef = useRef(musicQueue);
   useEffect(() => {
     musicQueueRef.current = musicQueue;
@@ -279,7 +237,6 @@ export function Player({
     }
   }, [pendingAutoPlayRef, onPlayingChange, suppressInternalChanges]);
 
-  
   useEffect(() => {
     const sub = TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => {
       if (isInternalChangeRef.current) return;
@@ -289,13 +246,10 @@ export function Player({
     return () => sub.remove();
   }, [handleNext, pendingAutoPlayRef]);
 
-  
   useEffect(() => {
     const sub = TrackPlayer.addEventListener(Event.PlaybackState, (event) => {
-      
       if (isInternalChangeRef.current) return;
 
-      
       if (event.state === State.Playing) {
         if (!isPlaying) onPlayingChange(true);
       } else if (event.state === State.Paused) {
@@ -326,7 +280,6 @@ export function Player({
     return () => sub.remove();
   }, []);
 
-  
   const syncTrackPlayerQueue = useCallback(async () => {
     if (!playerReady) {
       pendingAutoPlayRef.current = false;
@@ -388,7 +341,6 @@ export function Player({
       const shouldPlayNow = pendingAutoPlayRef.current || isPlaying;
       pendingAutoPlayRef.current = false;
 
-      
       suppressInternalChanges(1500);
 
       const activeTrack = await TrackPlayer.getActiveTrack();
@@ -396,7 +348,6 @@ export function Player({
 
       try {
         if (isSameTrack) {
-          
           const tpQueue = await TrackPlayer.getQueue();
           const currentIndexInTp = tpQueue.findIndex(item => item.id === current.id.toString());
           if (currentIndexInTp !== -1) {
@@ -519,17 +470,14 @@ export function Player({
     }, 50);
   }, [playerReady, musicQueue?.tracks, musicQueue?.currentIndex, track, isPlaying, onPlayingChange, pendingAutoPlayRef, t]);
 
-  
   useEffect(() => {
     if (!playerReady) return;
     void syncTrackPlayerQueue();
   }, [playerReady, syncTrackPlayerQueue]);
 
-  
   const handlePlayPause = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      
       suppressInternalChanges(500);
       
       if (isPlaying) {
@@ -559,15 +507,16 @@ export function Player({
     setVolume(value);
     await TrackPlayer.setVolume(isMuted ? 0 : value).catch(() => {});
   };
+
   const handleMute = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
     await TrackPlayer.setVolume(newMutedState ? 0 : volume).catch(() => {});
   };
+
   const handleShuffle = () => musicQueue.toggleShuffle();
 
-  
   const handleShare = async () => {
     if (!track) return;
     if (downloadStatus === 'downloading') return;
@@ -682,7 +631,6 @@ export function Player({
 
   if (!track) return null;
 
-  
   return (
     <>
       <View style={styles.cardroot}>
@@ -831,7 +779,6 @@ export function Player({
   );
 }
 
-
 const styles = StyleSheet.create({
   cardContainer: {
     width: '100%',
@@ -932,7 +879,7 @@ const styles = StyleSheet.create({
   modalAlbumArt: {
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: 8,
     marginRight: 10,
   },
   trackDetails: {
