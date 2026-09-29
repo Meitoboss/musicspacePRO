@@ -32,7 +32,7 @@
     "empty_recent": "Spiele einen Titel, und er erscheint hier.",
     "empty_liked": "Hier erscheinen deine Lieblingssongs",
     "your_country": "dein Land",
-    "welcome_title": "Willkommen bei OpenSpot",
+    "welcome_title": "Willkommen bei MusicSpace",
     "welcome_subtitle": "Stelle deine Einstellungen einmal ein. Trends werden im Hintergrund geladen.",
     "continue": "Weiter",
     "good_morning": "Good Morning",
@@ -84,7 +84,7 @@
     "liked_songs_hint": "Songs, die dir gefallen, erscheinen hier",
     "liked_songs_hint_2": "Tippe auf das Herz, um einen Song zu deinen Favoriten hinzuzufügen",
     "baking_favorites": "Backe deine Lieblingssongs...",
-    "openspot": "OpenSpot",
+    "musicSpace": "MusicSpace",
     "songs_tab": "Songs",
     "albums_tab": "Alben",
     "artists_tab": "Künstler",
@@ -190,8 +190,8 @@
     "back": "Zurück",
     "proceed": "Fortfahren",
     "share_with_friends": "Mit Freunden teilen",
-    "share_description": "Möchtest du, dass deine Freunde werbefreie Musik mit unbegrenztem Streaming und Offline-Downloads genießen? Teile OpenSpot und verbreite die Stimmung!",
+    "share_description": "Möchtest du, dass deine Freunde werbefreie Musik mit unbegrenztem Streaming und Offline-Downloads genießen? Teile MusicSpace und verbreite die Stimmung!",
     "share_app": "App teilen",
-    "share_message": "Hey! Schau dir OpenSpot an – werbefreies Musik-Streaming mit unbegrenzten Skips und Offline-Downloads. Dein persönlicher Musikbegleiter! 🎵"
+    "share_message": "Hey! Schau dir MusicSpace an – werbefreies Musik-Streaming mit unbegrenzten Skips und Offline-Downloads. Dein persönlicher Musikbegleiter! 🎵"
   }
 }
