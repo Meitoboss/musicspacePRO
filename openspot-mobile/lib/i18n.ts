@@ -14,7 +14,7 @@ i18n
   .init({
     resources,
     lng: 'ja', // デフォルト表示を日本語にする場合。英語指定にしたい場合は 'en' に変更してください
-    fallbackLng: 'en',
+    fallbackLng: 'ja',
     interpolation: {
       escapeValue: false,
     },
