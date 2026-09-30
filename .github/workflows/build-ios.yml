@@ -13,8 +13,8 @@ jobs:
     env:
       CI: "1"
       NODE_ENV: "production"
-      EXPO_PUBLIC_API_BASE_URL: "https://musicspace.duckdns.org/api"
-      EXPO_PUBLIC_YT_API_INSTANCES: "https://music.youtube.com"
+      EXPO_PUBLIC_API_BASE_URL: "https://nextjs-proxy-gamma.vercel.app"
+      EXPO_PUBLIC_YT_API_INSTANCES: "https://inv1.nadeko.net,https://inv2.nadeko.net,https://inv3.nadeko.net,https://inv4.nadeko.net,https://inv5.nadeko.net,https://inv6.nadeko.net,https://inv7.nadeko.net,https://inv8.nadeko.net,https://inv9.nadeko.net,https://yt.chocolatemoo53.com,https://invidious.nerdvpn.de,https://inv.thepixora.com,https://yewtu.be"
 
     steps:
       - name: Checkout code
