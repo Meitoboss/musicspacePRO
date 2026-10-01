@@ -70,7 +70,7 @@ jobs:
       - name: Install Pods
         run: |
           cd ios
-          export RCT_NEW_ARCH_ENABLED=1
+          export RCT_NEW_ARCH_ENABLED=0
           pod install --repo-update
 
       - name: Patch fmt library for Xcode consteval issue
@@ -122,31 +122,10 @@ jobs:
             exit 1
           fi
           WORKSPACE_NAME=$(basename "$WORKSPACE_PATH")
-          WORKSPACE_BASE="${WORKSPACE_NAME%.xcworkspace}"
-          echo "Found workspace: $WORKSPACE_NAME (Base: $WORKSPACE_BASE)"
+          echo "Found workspace: $WORKSPACE_NAME"
           
-          SCHEME_NAME=$(xcodebuild -list -workspace "$WORKSPACE_NAME" 2>/devnull | python3 -c "
-          import sys, re
-          text = sys.stdin.read()
-          target_base = '$WORKSPACE_BASE'
-          m = re.search(r'Schemes:\s*\n((?:\s+.*\n)+)', text)
-          if m:
-              schemes = [s.strip() for s in m.group(1).split('\n') if s.strip()]
-              exact = [s for s in schemes if s.lower() == target_base.lower()]
-              if exact:
-                  print(exact[0])
-              else:
-                  excluded = ('pods-', 'tests', 'react', 'boost', 'expo', 'fmt', 'glog', 'doubleconversion')
-                  app_schemes = [s for s in schemes if not any(x in s.lower() for x in excluded)]
-                  if app_schemes:
-                      print(app_schemes[0])
-                  elif schemes:
-                      print(schemes[0])
-          ")
-          if [ -z "$SCHEME_NAME" ]; then
-            SCHEME_NAME="$WORKSPACE_BASE"
-          fi
-          echo "Selected main app scheme: $SCHEME_NAME"
+          SCHEME_NAME="MusicSpace"
+          echo "Building target scheme: $SCHEME_NAME"
           
           xcodebuild build \
             -workspace "$WORKSPACE_NAME" \
@@ -176,7 +155,7 @@ jobs:
             exit 1
           fi
           if [ ! -f "$APP_PATH/main.jsbundle" ]; then
-            echo "Copiando bundle..."
+            echo "Copying bundle..."
             cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
           fi
           ls -la "$APP_PATH"
