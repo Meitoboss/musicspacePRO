@@ -1,0 +1,35 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://www.jiosaavn.com/api.php",
+        "EXPO_PUBLIC_YT_API_INSTANCES": "https://inv1.nadeko.net,https://inv2.nadeko.net,https://inv3.nadeko.net,https://inv4.nadeko.net,https://inv5.nadeko.net,https://inv6.nadeko.net,https://inv7.nadeko.net,https://inv8.nadeko.net,https://inv9.nadeko.net,https://yt.chocolatemoo53.com,https://invidious.nerdvpn.de,https://inv.thepixora.com,https://yewtu.be",
+        "EXPO_PUBLIC_YT_API_DISCOVERY": "https://api.invidious.io/instances.json?sort_by=health",
+        "EXPO_PUBLIC_SPOTIFY_FETCHER_URL": "https://api.tunemymusic.com/v2/Transfer",
+        "EXPO_PUBLIC_SPOTIFY_FETCHER_TOKEN_URL": "https://raw.githubusercontent.com/BlackHatDevX/openspot-config/refs/heads/main/spotify-playlist-token.json",
+        "EXPO_PUBLIC_SPOTIFY_FETCHER_DOMAIN": "tunemymusic"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
